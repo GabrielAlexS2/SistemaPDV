@@ -9,8 +9,6 @@ O **MarketFlow** é um sistema web completo (PWA) de Ponto de Venda e controle d
 - **Banco de Dados:** PostgreSQL.
 - **Integrações:** Mercado Pago (PIX QR Code Dinâmico), html5-qrcode (Scanner por câmera).
 
-## 📦 Como iniciar o projeto localmente
-
 ### 1. Configurar e Iniciar o Backend
 Abra um terminal na pasta `backend`:
 ```bash

@@ -69,8 +69,8 @@ const Layout = () => {
       {/* Mobile Topbar */}
       <header className="md:hidden bg-slate-800 border-b border-slate-700 p-3 flex items-center justify-between shrink-0 z-30">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/25">
-            <Store size={18} className="text-white" />
+          <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0">
+            <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
           </div>
           <div>
             <p className="text-white font-bold text-sm leading-none">EstoquePDV</p>
@@ -94,8 +94,8 @@ const Layout = () => {
         {/* Logo */}
         <div className="p-4 border-b border-slate-700">
           <div className="flex items-center gap-3 justify-center lg:justify-start">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/25">
-              <Store size={20} className="text-white" />
+            <div className="w-11 h-11 rounded-xl overflow-hidden flex items-center justify-center shrink-0">
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
             </div>
             <div className="hidden lg:block overflow-hidden">
               <p className="text-white font-bold text-sm leading-none">EstoquePDV</p>
@@ -132,8 +132,8 @@ const Layout = () => {
         <div className="md:hidden fixed inset-0 z-50 bg-slate-900 flex flex-col animate-fade-in">
           <div className="flex items-center justify-between p-4 border-b border-slate-800">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-                <Store size={20} className="text-white" />
+              <div className="w-11 h-11 rounded-xl overflow-hidden flex items-center justify-center shrink-0">
+                <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
               </div>
               <div>
                 <p className="text-white font-bold text-lg leading-none">Menu</p>

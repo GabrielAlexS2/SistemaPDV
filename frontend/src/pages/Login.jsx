@@ -24,8 +24,8 @@ const Login = () => {
 
         {/* Logo / Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-2xl shadow-emerald-500/30 mb-4">
-            <ShoppingCart size={36} className="text-white" />
+          <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl overflow-hidden mb-4">
+            <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-3xl font-bold text-white">EstoquePDV</h1>
           <p className="text-slate-400 mt-1">Sistema de Caixa e Estoque</p>
