@@ -11,13 +11,7 @@ O **MarketFlow** é um sistema web completo (PWA) de Ponto de Venda e controle d
 
 ## 📦 Como iniciar o projeto localmente
 
-### 1. Iniciar o Banco de Dados (Docker)
-Na raiz do projeto, execute o comando para subir o banco PostgreSQL:
-```bash
-docker-compose up -d
-```
-
-### 2. Configurar e Iniciar o Backend
+### 1. Configurar e Iniciar o Backend
 Abra um terminal na pasta `backend`:
 ```bash
 cd backend
@@ -27,7 +21,7 @@ npm run dev
 ```
 *(Opcional) Verifique as variáveis no arquivo `.env` para preencher com seus tokens reais do Mercado Pago.*
 
-### 3. Configurar e Iniciar o Frontend
+### 2. Configurar e Iniciar o Frontend
 Abra outro terminal na pasta `frontend`:
 ```bash
 cd frontend
@@ -35,7 +29,7 @@ npm install
 npm run dev
 ```
 
-### 4. Acessar o Sistema
+### 3. Acessar o Sistema
 Abra o navegador em `http://localhost:5173` (ou a porta informada pelo Vite).
 - **Usuário padrão:** `admin@estoque.com`
 - **Senha:** `admin123`
