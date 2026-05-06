@@ -1,0 +1,56 @@
+// Schema do banco de dados - Sistema de Estoque + PDV
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  senhaHash  String   @map("senha_hash")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("usuarios")
+}
+
+model Produto {
+  id           Int        @id @default(autoincrement())
+  nome         String
+  codigoBarras String?    @unique @map("codigo_barras")
+  preco        Float
+  precoCusto   Float?     @map("preco_custo")
+  quantidade   Int        @default(0)
+  estoqueMinimo Int       @default(5) @map("estoque_minimo")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  itensVenda   ItemVenda[]
+
+  @@map("produtos")
+}
+
+model Venda {
+  id            Int        @id @default(autoincrement())
+  total         Float
+  tipoPagamento String     @default("dinheiro") @map("tipo_pagamento")
+  data          DateTime   @default(now())
+  createdAt     DateTime   @default(now()) @map("created_at")
+  itens         ItemVenda[]
+
+  @@map("vendas")
+}
+
+model ItemVenda {
+  id            Int     @id @default(autoincrement())
+  vendaId       Int     @map("venda_id")
+  produtoId     Int     @map("produto_id")
+  quantidade    Int
+  precoUnitario Float   @map("preco_unitario")
+
+  venda   Venda   @relation(fields: [vendaId], references: [id])
+  produto Produto @relation(fields: [produtoId], references: [id])
+
+  @@map("itens_venda")
+}

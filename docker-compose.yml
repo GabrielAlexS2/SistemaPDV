@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: marketflow_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: estoque_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: marketflow_app
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://postgres:root@postgres:5432/estoque_db?schema=public
+      - JWT_SECRET=chave_secreta_padrao_local_123
+      - PORT=3001
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    # Executa as migrations do banco antes de iniciar o servidor Node
+    command: sh -c "npx prisma migrate deploy && npm start"
+
+volumes:
+  postgres_data:
