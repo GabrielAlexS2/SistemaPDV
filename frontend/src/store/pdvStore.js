@@ -32,6 +32,7 @@ const usePdvStore = create((set, get) => ({
 
     socket.on('connect', () => {
       set({ isSocketConnected: true });
+      socket.emit('request_sync');
     });
 
     socket.on('disconnect', () => {
@@ -43,6 +44,13 @@ const usePdvStore = create((set, get) => ({
         carrinho: dadosCarrinho.carrinho,
         total: dadosCarrinho.total
       });
+    });
+
+    socket.on('send_current_cart', () => {
+      const { carrinho, total } = get();
+      if (carrinho.length > 0) {
+        socket.emit('cart_update', { carrinho, total });
+      }
     });
   },
 

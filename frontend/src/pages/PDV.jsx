@@ -17,10 +17,21 @@ const PDV = () => {
   const [ultimoBuscado, setUltimoBuscado] = useState(null);
   const [erroBarcode, setErroBarcode] = useState('');
   const [modalPagamento, setModalPagamento] = useState(false);
+  const [etapaPagamento, setEtapaPagamento] = useState('selecao'); // selecao, dinheiro
+  const [precisaTroco, setPrecisaTroco] = useState(null);
+  const [valorRecebido, setValorRecebido] = useState('');
   const [qrCodeMP, setQrCodeMP] = useState(null);
   const [gerandoQrCode, setGerandoQrCode] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const inputRef = useRef(null);
+
+  const resetModal = () => {
+    setModalPagamento(false);
+    setEtapaPagamento('selecao');
+    setPrecisaTroco(null);
+    setValorRecebido('');
+    setQrCodeMP(null);
+  };
 
   const {
     carrinho, total, processando, vendaPendentes,
@@ -29,8 +40,9 @@ const PDV = () => {
 
   // Manter o input sempre focado (fundamental para leitor USB)
   const focarInput = useCallback(() => {
+    if (modalPagamento) return;
     if (inputRef.current) inputRef.current.focus();
-  }, []);
+  }, [modalPagamento]);
 
   useEffect(() => {
     focarInput();
@@ -90,7 +102,10 @@ const PDV = () => {
     const handleKeyDown = (e) => {
       if (e.key === 'F12') {
         e.preventDefault();
-        if (carrinho.length > 0 && !processando && !modalPagamento) setModalPagamento(true);
+        if (carrinho.length > 0 && !processando && !modalPagamento) {
+          setEtapaPagamento('selecao');
+          setModalPagamento(true);
+        }
       }
     };
     document.addEventListener('keydown', handleKeyDown);
@@ -108,8 +123,7 @@ const PDV = () => {
             clearInterval(intervalo);
             toast.success('✅ Pagamento PIX aprovado automaticamente!');
             finalizarVenda('mercado_pago');
-            setModalPagamento(false);
-            setQrCodeMP(null);
+            resetModal();
           }
         } catch (error) {
           console.error('Erro ao verificar status do PIX:', error);
@@ -168,6 +182,7 @@ const PDV = () => {
                   inputMode="numeric"
                   pattern="[0-9]*"
                   autoFocus
+                  disabled={modalPagamento}
                   value={codigo}
                   onChange={(e) => setCodigo(e.target.value)}
                   placeholder="Escaneie ou digite o código de barras..."
@@ -310,7 +325,10 @@ const PDV = () => {
           {/* Botão Finalizar Venda */}
           <div className="p-3 lg:p-4 border-t border-slate-700 bg-slate-800">
             <button
-              onClick={() => setModalPagamento(true)}
+              onClick={() => {
+                setEtapaPagamento('selecao');
+                setModalPagamento(true);
+              }}
               disabled={carrinho.length === 0 || processando}
               className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 disabled:from-slate-700 disabled:to-slate-700 disabled:cursor-not-allowed text-white font-bold py-3 lg:py-5 rounded-xl lg:rounded-2xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-emerald-500/20 text-base lg:text-lg"
 
@@ -339,12 +357,11 @@ const PDV = () => {
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
           <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl animate-scale-in">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-white font-bold text-xl">Finalizar Venda</h2>
+              <h2 className="text-white font-bold text-xl">
+                {etapaPagamento === 'dinheiro' ? 'Pagamento em Dinheiro' : 'Finalizar Venda'}
+              </h2>
               <button 
-                onClick={() => {
-                  setModalPagamento(false);
-                  setQrCodeMP(null);
-                }} 
+                onClick={resetModal} 
                 className="text-slate-400 hover:text-white transition-colors"
               >
                 <X size={22} />
@@ -356,15 +373,12 @@ const PDV = () => {
               <p className="text-4xl font-bold text-emerald-400">R$ {total.toFixed(2).replace('.', ',')}</p>
             </div>
 
-            {!qrCodeMP ? (
+            {etapaPagamento === 'selecao' && !qrCodeMP && (
               <div className="space-y-3">
                 <p className="text-slate-300 font-medium mb-3">Selecione a forma de pagamento:</p>
                 
                 <button
-                  onClick={() => {
-                    finalizarVenda('dinheiro');
-                    setModalPagamento(false);
-                  }}
+                  onClick={() => setEtapaPagamento('dinheiro')}
                   className="w-full bg-slate-700 hover:bg-slate-600 text-white p-4 rounded-xl flex items-center gap-4 transition-colors"
                 >
                   <div className="w-12 h-12 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400">
@@ -400,33 +414,115 @@ const PDV = () => {
                   </div>
                 </button>
               </div>
-            ) : qrCodeMP.error ? (
-              <div className="text-center py-6">
-                <p className="text-red-400 mb-4">Erro ao gerar QR Code. Verifique se o backend está online e configurado.</p>
-                <button onClick={() => setQrCodeMP(null)} className="bg-slate-700 text-white px-6 py-2 rounded-xl">Voltar</button>
+            )}
+
+            {etapaPagamento === 'dinheiro' && (
+              <div className="space-y-4 animate-fade-in">
+                {precisaTroco === null ? (
+                  <>
+                    <p className="text-slate-300 font-medium text-center mb-4">O cliente precisa de troco?</p>
+                    <div className="flex gap-4">
+                      <button
+                        onClick={() => {
+                          setPrecisaTroco(false);
+                          finalizarVenda('dinheiro');
+                          resetModal();
+                        }}
+                        className="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-4 rounded-xl font-bold transition-colors"
+                      >
+                        Não, valor exato
+                      </button>
+                      <button
+                        onClick={() => setPrecisaTroco(true)}
+                        className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-white py-4 rounded-xl font-bold transition-colors"
+                      >
+                        Sim
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => setEtapaPagamento('selecao')}
+                      className="w-full mt-4 text-slate-400 hover:text-white py-2 text-sm transition-colors"
+                    >
+                      Voltar
+                    </button>
+                  </>
+                ) : precisaTroco === true ? (
+                  <>
+                    <div className="space-y-2">
+                      <label className="text-slate-300 text-sm">Valor recebido do cliente (R$):</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min={total}
+                        value={valorRecebido}
+                        onChange={(e) => setValorRecebido(e.target.value)}
+                        placeholder="Ex: 50.00"
+                        className="w-full bg-slate-900 border-2 border-slate-600 focus:border-emerald-500 text-white text-xl placeholder-slate-500 rounded-xl px-4 py-3 focus:outline-none transition-all text-center"
+                        autoFocus
+                      />
+                    </div>
+                    
+                    {parseFloat(valorRecebido) >= total && (
+                      <div className="bg-emerald-500/20 border border-emerald-500/30 rounded-xl p-4 text-center my-4 animate-scale-in">
+                        <p className="text-emerald-400 text-sm mb-1">Troco a devolver</p>
+                        <p className="text-3xl font-bold text-emerald-400">
+                          R$ {(parseFloat(valorRecebido) - total).toFixed(2).replace('.', ',')}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="flex gap-3 pt-2">
+                      <button
+                        onClick={() => setPrecisaTroco(null)}
+                        className="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-xl font-medium transition-colors"
+                      >
+                        Voltar
+                      </button>
+                      <button
+                        onClick={() => {
+                          finalizarVenda('dinheiro');
+                          resetModal();
+                        }}
+                        disabled={!valorRecebido || parseFloat(valorRecebido) < total}
+                        className="flex-1 bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-600 disabled:text-slate-400 text-white py-3 rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
+                      >
+                        <CheckCircle size={20} />
+                        Confirmar
+                      </button>
+                    </div>
+                  </>
+                ) : null}
               </div>
-            ) : (
-              <div className="text-center">
-                <p className="text-slate-300 mb-4">Peça para o cliente escanear o QR Code abaixo com o aplicativo do banco ou Mercado Pago:</p>
-                
-                <div className="bg-white p-4 rounded-xl inline-block mb-4">
-                  <img src={`data:image/png;base64,${qrCodeMP.qrCodeBase64}`} alt="QR Code PIX" className="w-48 h-48 mx-auto" />
+            )}
+
+            {etapaPagamento === 'selecao' && qrCodeMP && (
+              qrCodeMP.error ? (
+                <div className="text-center py-6">
+                  <p className="text-red-400 mb-4">Erro ao gerar QR Code. Verifique se o backend está online e configurado.</p>
+                  <button onClick={resetModal} className="bg-slate-700 text-white px-6 py-2 rounded-xl">Voltar</button>
                 </div>
-                
-                <p className="text-xs text-slate-500 mb-6 truncate px-4">{qrCodeMP.qrCodeCopiaCola}</p>
-                
-                <button
-                  onClick={() => {
-                    finalizarVenda('mercado_pago');
-                    setModalPagamento(false);
-                    setQrCodeMP(null);
-                  }}
-                  className="w-full bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-4 rounded-xl transition-colors flex items-center justify-center gap-2"
-                >
-                  <CheckCircle size={20} />
-                  Confirmar Pagamento Recebido
-                </button>
-              </div>
+              ) : (
+                <div className="text-center">
+                  <p className="text-slate-300 mb-4">Peça para o cliente escanear o QR Code abaixo com o aplicativo do banco ou Mercado Pago:</p>
+                  
+                  <div className="bg-white p-4 rounded-xl inline-block mb-4">
+                    <img src={`data:image/png;base64,${qrCodeMP.qrCodeBase64}`} alt="QR Code PIX" className="w-48 h-48 mx-auto" />
+                  </div>
+                  
+                  <p className="text-xs text-slate-500 mb-6 truncate px-4">{qrCodeMP.qrCodeCopiaCola}</p>
+                  
+                  <button
+                    onClick={() => {
+                      finalizarVenda('mercado_pago');
+                      resetModal();
+                    }}
+                    className="w-full bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-4 rounded-xl transition-colors flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle size={20} />
+                    Confirmar Pagamento Recebido
+                  </button>
+                </div>
+              )
             )}
           </div>
         </div>
