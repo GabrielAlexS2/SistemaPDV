@@ -51,6 +51,11 @@ io.on('connection', (socket) => {
     socket.to(userRoom).emit('sync_cart', dadosCarrinho);
   });
 
+  // Solicita que outros dispositivos na sala enviem o carrinho atual
+  socket.on('request_sync', () => {
+    socket.to(userRoom).emit('send_current_cart');
+  });
+
   socket.on('disconnect', () => {
     console.log(`🔌 Cliente desconectado: Socket ${socket.id}`);
   });
